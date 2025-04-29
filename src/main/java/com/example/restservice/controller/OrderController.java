@@ -1,6 +1,5 @@
 package com.example.restservice.controller;
 
-import com.example.restservice.dto.OrderDto;
 import com.example.restservice.model.Order;
 import com.example.restservice.service.OrderService;
 import java.util.List;
@@ -25,30 +24,14 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderDto> getAllOrders() {
-        return orderService.getAllOrders().stream()
-                .map(order -> new OrderDto(
-                        order.getId(),
-                        order.getOrderDate(),
-                        order.getUser() != null ? order.getUser().getUsername() : null,
-                        order.getProducts().stream()
-                                .map(product -> product.getName())
-                                .toList()
-                ))
-                .toList();
+    public List<Order> getAllOrders() {
+        return orderService.getAllOrders();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderDto> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id)
-                .map(order -> ResponseEntity.ok(new OrderDto(
-                        order.getId(),
-                        order.getOrderDate(),
-                        order.getUser() != null ? order.getUser().getUsername() : null,
-                        order.getProducts().stream()
-                                .map(product -> product.getName())
-                                .toList()
-                )))
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -59,8 +42,8 @@ public class OrderController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id,
-                                             @RequestBody Order orderDetails) {
-        return orderService.updateOrder(id, orderDetails)
+                                             @RequestBody Order updatedOrder) {
+        return orderService.updateOrder(id, updatedOrder)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

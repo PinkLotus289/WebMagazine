@@ -1,18 +1,18 @@
 package com.example.restservice.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -24,55 +24,80 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private String customerName;
+
+    @Column(nullable = false)
+    private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    @Column(nullable = false)
     private LocalDateTime orderDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
-    private User user;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,
-            orphanRemoval = true, fetch = FetchType.LAZY)
+    @ManyToMany
+    @JoinTable(
+            name = "order_product",
+            joinColumns = @JoinColumn(name = "order_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
     private Set<Product> products = new HashSet<>();
-
-    // Геттеры и сеттеры
 
 
     public Order() {
-        /*
-         * Пустой конструктор необходим для JPA.
-         */
+        this.orderDate = LocalDateTime.now();
     }
+
+    public Order(String customerName, Set<Product> products) {
+        this.customerName = customerName;
+        this.products = products != null ? products : new HashSet<>();
+        this.orderDate = LocalDateTime.now();
+        recalculateTotalAmount();
+    }
+
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
     }
 
     public Set<Product> getProducts() {
         return products;
     }
 
+    public LocalDateTime getOrderDate() {
+        return orderDate;
+    }
+
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
     public void setProducts(Set<Product> products) {
-        this.products = products;
+        this.products = products != null ? products : new HashSet<>();
+        recalculateTotalAmount();
+    }
+
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
+    }
+
+
+    public void recalculateTotalAmount() {
+        this.totalAmount = products.stream()
+                .map(Product::getPrice)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
+

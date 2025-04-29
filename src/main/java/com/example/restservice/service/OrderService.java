@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class OrderService {
+
     private final OrderRepository orderRepository;
 
     public OrderService(OrderRepository orderRepository) {
@@ -24,15 +25,18 @@ public class OrderService {
     }
 
     public Order createOrder(Order order) {
+        order.recalculateTotalAmount(); // Пересчитать итоговую сумму
         return orderRepository.save(order);
     }
 
-    public Optional<Order> updateOrder(Long id, Order orderDetails) {
-        return orderRepository.findById(id).map(order -> {
-            order.setOrderDate(orderDetails.getOrderDate());
-            order.setUser(orderDetails.getUser());
-            return orderRepository.save(order);
-        });
+    public Optional<Order> updateOrder(Long id, Order updatedOrder) {
+        return orderRepository.findById(id)
+                .map(order -> {
+                    order.setCustomerName(updatedOrder.getCustomerName());
+                    order.setProducts(updatedOrder.getProducts());
+                    order.recalculateTotalAmount(); // Пересчитать сумму после изменения продуктов
+                    return orderRepository.save(order);
+                });
     }
 
     public boolean deleteOrder(Long id) {

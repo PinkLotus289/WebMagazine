@@ -7,8 +7,10 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 
+
 @Service
 public class ProductService {
+
     private final ProductRepository productRepository;
 
     public ProductService(ProductRepository productRepository) {
@@ -27,13 +29,13 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public Optional<Product> updateProduct(Long id, Product productDetails) {
-        return productRepository.findById(id).map(product -> {
-            product.setName(productDetails.getName());
-            product.setPrice(productDetails.getPrice());
-            product.setCategory(productDetails.getCategory());
-            return productRepository.save(product);
-        });
+    public Optional<Product> updateProduct(Long id, Product updatedProduct) {
+        return productRepository.findById(id)
+                .map(product -> {
+                    product.setName(updatedProduct.getName());
+                    product.setPrice(updatedProduct.getPrice());
+                    return productRepository.save(product);
+                });
     }
 
     public boolean deleteProduct(Long id) {

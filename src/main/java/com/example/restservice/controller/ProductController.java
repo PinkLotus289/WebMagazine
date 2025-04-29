@@ -40,10 +40,10 @@ public class ProductController {
         return productService.createProduct(product);
     }
 
-    @PutMapping(value = "/{id}", consumes = "application/json", produces = "application/json")
+    @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id,
-                                                 @RequestBody Product productDetails) {
-        return productService.updateProduct(id, productDetails)
+                                                 @RequestBody Product updatedProduct) {
+        return productService.updateProduct(id, updatedProduct)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
