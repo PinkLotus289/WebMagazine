@@ -3,6 +3,7 @@ package com.example.restservice.service;
 import com.example.restservice.model.Order;
 import com.example.restservice.repository.OrderRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +12,18 @@ import org.springframework.stereotype.Service;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final Map<String, List<Order>> ordersByProductNameCache;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, Map<String,
+            List<Order>> ordersByProductNameCache) {
         this.orderRepository = orderRepository;
+        this.ordersByProductNameCache = ordersByProductNameCache;
+    }
+
+    public List<Order> getOrdersByProductName(String productName) {
+        return ordersByProductNameCache.computeIfAbsent(productName,
+                orderRepository::findOrdersByProductName
+        );
     }
 
     public List<Order> getAllOrders() {
@@ -22,6 +32,10 @@ public class OrderService {
 
     public Optional<Order> getOrderById(Long id) {
         return orderRepository.findById(id);
+    }
+
+    public List<Order> findOrdersByProductName(String productName) {
+        return orderRepository.findOrdersByProductName(productName);
     }
 
     public Order createOrder(Order order) {
