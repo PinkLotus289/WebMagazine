@@ -34,6 +34,12 @@ public class OrderController {
         return orderService.findOrdersByProductName(productName);
     }
 
+    @DeleteMapping("/cache/clear")
+    public ResponseEntity<String> clearOrdersCache() {
+        String message = orderService.clearOrdersCache();
+        return ResponseEntity.ok(message);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id)
@@ -61,4 +67,22 @@ public class OrderController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/{orderId}/add-product/{productId}")
+    public ResponseEntity<Order> addProductToOrder(@PathVariable Long orderId,
+                                                   @PathVariable Long productId) {
+        return orderService.addProductToOrder(orderId, productId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
+    @PutMapping("/{orderId}/remove-product/{productId}")
+    public ResponseEntity<Order> removeProductFromOrder(@PathVariable Long orderId,
+                                                        @PathVariable Long productId) {
+        return orderService.removeProductFromOrder(orderId, productId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }
