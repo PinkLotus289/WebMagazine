@@ -1,11 +1,11 @@
 package com.example.restservice.service;
 
+import com.example.restservice.exception.InvalidProductException;
 import com.example.restservice.model.Product;
 import com.example.restservice.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-
 
 
 @Service
@@ -26,6 +26,9 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
+        if ("Test".equalsIgnoreCase(product.getName())) {
+            throw new InvalidProductException("Нельзя создавать товар с именем 'Test'");
+        }
         return productRepository.save(product);
     }
 

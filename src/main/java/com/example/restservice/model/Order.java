@@ -9,6 +9,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -24,12 +28,15 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Имя клиента не может быть пустым")
     @Column(nullable = false)
     private String customerName;
 
     @Column(nullable = false)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
+    @NotNull(message = "Дата заказа обязательна")
+    @PastOrPresent(message = "Дата заказа не может быть в будущем")
     @Column(nullable = false)
     private LocalDateTime orderDate;
 
@@ -39,8 +46,10 @@ public class Order {
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
-    private Set<Product> products = new HashSet<>();
 
+    @NotNull(message = "Список продуктов не может быть null")
+    @Size(min = 1, message = "Нужно указать хотя бы один продукт")
+    private Set<Product> products = new HashSet<>();
 
     public Order() {
         this.orderDate = LocalDateTime.now();

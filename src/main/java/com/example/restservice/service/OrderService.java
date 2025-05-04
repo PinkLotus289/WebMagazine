@@ -1,13 +1,16 @@
 package com.example.restservice.service;
 
+import com.example.restservice.exception.InvalidOrderException;
 import com.example.restservice.model.Order;
 import com.example.restservice.model.Product;
 import com.example.restservice.repository.OrderRepository;
+import com.example.restservice.repository.ProductRepository;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import com.example.restservice.repository.ProductRepository;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 
@@ -55,9 +58,19 @@ public class OrderService {
         return orderRepository.findById(id);
     }
 
-
     public Order createOrder(Order order) {
-        order.recalculateTotalAmount(); // Пересчитать итоговую сумму
+        Set<Long> productIds = order.getProducts().stream()
+                .map(Product::getId)
+                .collect(Collectors.toSet());
+
+        List<Product> productsFromDb = productRepository.findAllById(productIds);
+
+        if (productsFromDb.size() != productIds.size()) {
+            throw new InvalidOrderException("Один или несколько продуктов не найдены");
+        }
+
+        order.setProducts(new HashSet<>(productsFromDb));
+        order.recalculateTotalAmount();
         return orderRepository.save(order);
     }
 
@@ -81,7 +94,9 @@ public class OrderService {
 
     public Optional<Order> addProductToOrder(Long orderId, Long productId) {
         Optional<Product> productOpt = productRepository.findById(productId);
-        if (productOpt.isEmpty()) return Optional.empty();
+        if (productOpt.isEmpty()) {
+            return Optional.empty();
+        }
 
         return orderRepository.findById(orderId).map(order -> {
             order.getProducts().add(productOpt.get());
