@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
 
 @Component
 public class OrderCache {
@@ -27,7 +28,8 @@ public class OrderCache {
                 if (currentCacheSize > MAX_CACHE_SIZE) {
                     long size = estimateSize(eldest.getValue());
                     currentCacheSize -= size;
-                    logger.info("🧹 Removed eldest cache entry for key '{}' (size {} bytes)", eldest.getKey(), size);
+                    logger.info("🧹 Removed eldest cache entry for key '{}' (size {} bytes)",
+                            eldest.getKey(), size);
                     return true;
                 }
                 return false;
@@ -50,7 +52,8 @@ public class OrderCache {
         long size = estimateSize(orders);
         cache.put(key, orders);
         currentCacheSize += size;
-        logger.info("📦 Cached {} orders for key '{}' (estimated size: {} bytes)", orders.size(), key, size);
+        logger.info("📦 Cached {} orders for key '{}' (estimated size: {} bytes)",
+                orders.size(), key, size);
     }
 
     public void clear() {

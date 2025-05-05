@@ -1,14 +1,13 @@
 package com.example.restservice.service;
 
+import com.example.restservice.cache.OrderCache;
 import com.example.restservice.exception.InvalidOrderException;
 import com.example.restservice.model.Order;
-import com.example.restservice.cache.OrderCache;
 import com.example.restservice.model.Product;
 import com.example.restservice.repository.OrderRepository;
 import com.example.restservice.repository.ProductRepository;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,7 +35,8 @@ public class OrderService {
             System.out.println("👉 Данные взяты из кэша для productName: " + productName);
             return orderCache.get(productName);
         } else {
-            System.out.println("🔄 Кэш отсутствует. Загружаем из БД для productName: " + productName);
+            System.out.println("🔄 Кэш отсутствует. Загружаем из БД для productName: "
+                    + productName);
             List<Order> orders = orderRepository.findOrdersByProductName(productName);
             orderCache.put(productName, orders);
             return orders;
