@@ -2,6 +2,7 @@ package com.example.restservice.service;
 
 import com.example.restservice.exception.InvalidOrderException;
 import com.example.restservice.model.Order;
+import com.example.restservice.cache.OrderCache;
 import com.example.restservice.model.Product;
 import com.example.restservice.repository.OrderRepository;
 import com.example.restservice.repository.ProductRepository;
@@ -18,34 +19,34 @@ import org.springframework.stereotype.Service;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final Map<String, List<Order>> ordersByProductNameCache;
+    private final OrderCache orderCache;
     private final ProductRepository productRepository;
 
     public OrderService(OrderRepository orderRepository,
                         ProductRepository productRepository,
-                        Map<String, List<Order>> ordersByProductNameCache) {
+                        OrderCache orderCache) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
-        this.ordersByProductNameCache = ordersByProductNameCache;
+        this.orderCache = orderCache;
     }
 
 
     public List<Order> findOrdersByProductName(String productName) {
-        if (ordersByProductNameCache.containsKey(productName)) {
-            System.out.println("Данные взяты из кэша для productName: " + productName);
-            return ordersByProductNameCache.get(productName);
+        if (orderCache.contains(productName)) {
+            System.out.println("👉 Данные взяты из кэша для productName: " + productName);
+            return orderCache.get(productName);
         } else {
-            System.out.println("Кэш отсутствует. Загружаем из БД для productName: " + productName);
+            System.out.println("🔄 Кэш отсутствует. Загружаем из БД для productName: " + productName);
             List<Order> orders = orderRepository.findOrdersByProductName(productName);
-            ordersByProductNameCache.put(productName, orders);
+            orderCache.put(productName, orders);
             return orders;
         }
     }
 
     public String clearOrdersCache() {
-        String message = "Очистка кэша заказов...";
+        String message = "🧹 Очистка кэша заказов...";
         System.out.println(message);
-        ordersByProductNameCache.clear();
+        orderCache.clear();
         return message;
     }
 
