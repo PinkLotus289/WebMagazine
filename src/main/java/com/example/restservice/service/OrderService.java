@@ -72,6 +72,9 @@ public class OrderService {
 
         order.setProducts(new HashSet<>(productsFromDb));
         order.recalculateTotalAmount();
+
+        productsFromDb.forEach(p -> orderCache.invalidate(p.getName()));
+
         return orderRepository.save(order);
     }
 
@@ -80,7 +83,9 @@ public class OrderService {
                 .map(order -> {
                     order.setCustomerName(updatedOrder.getCustomerName());
                     order.setProducts(updatedOrder.getProducts());
-                    order.recalculateTotalAmount(); // Пересчитать сумму после изменения продуктов
+                    order.recalculateTotalAmount();
+
+                    order.getProducts().forEach(p -> orderCache.invalidate(p.getName()));
                     return orderRepository.save(order);
                 });
     }
@@ -102,6 +107,7 @@ public class OrderService {
         return orderRepository.findById(orderId).map(order -> {
             order.getProducts().add(productOpt.get());
             order.recalculateTotalAmount();
+            orderCache.invalidate(productOpt.get().getName());
             return orderRepository.save(order);
         });
     }
@@ -109,7 +115,17 @@ public class OrderService {
 
     public Optional<Order> removeProductFromOrder(Long orderId, Long productId) {
         return orderRepository.findById(orderId).map(order -> {
-            order.getProducts().removeIf(p -> p.getId().equals(productId));
+            // Находим удаляемый продукт
+            Optional<Product> toRemove = order.getProducts().stream()
+                    .filter(p -> p.getId().equals(productId))
+                    .findFirst();
+
+            // Удаляем, если нашли
+            boolean removed = order.getProducts().removeIf(p -> p.getId().equals(productId));
+            if (removed) {
+                toRemove.ifPresent(p -> orderCache.invalidate(p.getName())); // ⚠️ Инвалидация по имени продукта
+            }
+
             order.recalculateTotalAmount();
             return orderRepository.save(order);
         });

@@ -10,14 +10,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-
 @Component
 public class OrderCache {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderCache.class);
 
-    private static final long MAX_CACHE_SIZE = 1_000_000_000L;
-    private long currentCacheSize = 0;
+    private static final int MAX_ENTRIES = 1000;
 
     private final Map<String, List<Order>> cache;
 
@@ -25,19 +23,16 @@ public class OrderCache {
         this.cache = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<String, List<Order>> eldest) {
-                if (currentCacheSize > MAX_CACHE_SIZE) {
-                    long size = estimateSize(eldest.getValue());
-                    currentCacheSize -= size;
-                    logger.info("🧹 Removed eldest cache entry for key '{}' (size {} bytes)",
-                            eldest.getKey(), size);
-                    return true;
+                boolean shouldRemove = size() > MAX_ENTRIES;
+                if (shouldRemove) {
+                    logger.info("🧹 Removed eldest cache entry for key '{}'", eldest.getKey());
                 }
-                return false;
+                return shouldRemove;
             }
         });
     }
 
-    @Scheduled(fixedRate = 30 * 1000)
+    @Scheduled(fixedRate = 30 * 60 * 1000)
     public void autoClearCache() {
         clear();
         logger.info("🕒 Автоматически очищен кэш заказов по расписанию");
@@ -49,21 +44,20 @@ public class OrderCache {
     }
 
     public void put(String key, List<Order> orders) {
-        long size = estimateSize(orders);
         cache.put(key, orders);
-        currentCacheSize += size;
-        logger.info("📦 Cached {} orders for key '{}' (estimated size: {} bytes)",
-                orders.size(), key, size);
+        logger.info("📦 Cached {} orders for key '{}'", orders.size(), key);
     }
 
     public void clear() {
         cache.clear();
-        currentCacheSize = 0;
         logger.info("🧹 Cleared entire order cache");
     }
 
-    private long estimateSize(List<Order> orders) {
-        return orders.size() * 500L;
+    public void invalidate(String key) {
+        List<Order> removed = cache.remove(key);
+        if (removed != null) {
+            logger.info("❌ Invalidated cache for key '{}'", key);
+        }
     }
 
     public boolean contains(String key) {
