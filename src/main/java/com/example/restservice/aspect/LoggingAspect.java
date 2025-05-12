@@ -1,5 +1,6 @@
 package com.example.restservice.aspect;
 
+import com.example.restservice.exception.LogProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -109,7 +110,7 @@ public class LoggingAspect {
             long duration = System.currentTimeMillis() - start;
             logger.error("❌ Ошибка при выполнении {} {}: {} | время: {} мс",
                     method, uri, ex.getMessage(), duration, ex);
-            throw new RuntimeException("Ошибка при выполнении запроса " + method + " " + uri, ex);
+            throw new LogProcessingException("Ошибка при выполнении запроса " + method + " " + uri, ex);
         }
     }
 
