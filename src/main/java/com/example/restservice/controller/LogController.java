@@ -26,6 +26,7 @@ public class LogController {
 
     private static final Logger logger = LoggerFactory.getLogger(LogController.class);
     private static final String LOG_FILE_PATH = "logs/app.log";
+    private static final String SAFE_DATE_REGEX = "[^\\d\\-]";
 
     @GetMapping
     @Operation(
@@ -39,13 +40,13 @@ public class LogController {
             @Parameter(description = "Дата в формате yyyy-MM-dd")
             @RequestParam String date) {
         try {
-            String sanitizedDate = date.replaceAll("[^\\d\\-]", "");
+            String sanitizedDate = date.replaceAll(SAFE_DATE_REGEX, "");
             logger.info("📂 Получен запрос на лог за дату {}", sanitizedDate);
 
 
             File logFile = new File(LOG_FILE_PATH);
             if (!logFile.exists()) {
-                String safeDate = date.replaceAll("[^\\d\\-]", "");
+                String safeDate = date.replaceAll(SAFE_DATE_REGEX, "");
                 logger.warn("⚠️ Лог-файл не найден при запросе даты {}", safeDate);
                 return ResponseEntity.status(404).body("Лог-файл не найден.");
             }
@@ -55,7 +56,7 @@ public class LogController {
                     .toList();
 
             if (filteredLines.isEmpty()) {
-                String safeDate = date.replaceAll("[^\\d\\-]", "");
+                String safeDate = date.replaceAll(SAFE_DATE_REGEX, "");
                 logger.info("ℹ️ Логи за дату {} не найдены", safeDate);
                 return ResponseEntity.status(404).body("Логи за дату " + date + " не найдены.");
             }

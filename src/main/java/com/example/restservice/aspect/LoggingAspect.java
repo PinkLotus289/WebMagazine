@@ -107,9 +107,9 @@ public class LoggingAspect {
             return result;
         } catch (Exception ex) {
             long duration = System.currentTimeMillis() - start;
-            logger.error("❌ {} {} вызвало исключение: {} | время: {} мс",
+            logger.error("❌ Ошибка при выполнении {} {}: {} | время: {} мс",
                     method, uri, ex.getMessage(), duration, ex);
-            throw ex;
+            throw new RuntimeException("Ошибка при выполнении запроса " + method + " " + uri, ex);
         }
     }
 
