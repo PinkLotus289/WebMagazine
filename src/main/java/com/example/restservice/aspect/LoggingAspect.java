@@ -1,7 +1,6 @@
 package com.example.restservice.aspect;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -53,8 +52,8 @@ public class LoggingAspect {
 
     @AfterReturning(pointcut = "controllerMethods()", returning = "result")
     public void logAfterController(JoinPoint joinPoint, Object result) {
-        if (!(result instanceof String logContent
-                && joinPoint.getSignature().toShortString().contains("LogController"))) {
+        if (!(result instanceof String)
+                || !joinPoint.getSignature().toShortString().contains("LogController")) {
             logger.info("✅ Контроллер {} отработал. Результат: {}",
                     joinPoint.getSignature(), result);
         } else {
@@ -96,17 +95,17 @@ public class LoggingAspect {
                 status = 200;
             }
 
-            if (!(result instanceof String logContent && uri.equals("/logs"))) {
-                logger.info("📥 {} {} от IP {} ➡️ статус: {} | время: {} мс",
-                        method, uri, ip, status, duration);
+            if (!(result instanceof String) || !uri.equals("/logs")) {
+                logger.info("📥 {} {} от IP {} ➡️ статус: {} | время: {} мс", method, uri,
+                        ip, status, duration);
             } else {
-                logger.info("📥 {} {} от IP {} ➡️ статус: {} | время: {} мс "
-                                + "(возврат лог-файла, тело не логируем)",
+                logger.info("📥 {} {} от IP {} ➡️ статус: {} | время: {} мс (возврат лог-файла, "
+                                + "тело не логируем)",
                         method, uri, ip, status, duration);
             }
 
             return result;
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             long duration = System.currentTimeMillis() - start;
             logger.error("❌ {} {} вызвало исключение: {} | время: {} мс",
                     method, uri, ex.getMessage(), duration, ex);

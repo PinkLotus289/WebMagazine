@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String ERROR_KEY = "error";
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationErrors(
@@ -35,7 +36,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleInvalidProductException(
             InvalidProductException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
+        error.put(ERROR_KEY, ex.getMessage());
 
         logger.warn("⚠️ InvalidProductException: {}", ex.getMessage());
 
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleInvalidOrderException(
             InvalidOrderException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
+        error.put(ERROR_KEY, ex.getMessage());
 
         logger.warn("⚠️ InvalidOrderException: {}", ex.getMessage());
 
@@ -56,7 +57,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllOtherExceptions(Exception ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
+        error.put(ERROR_KEY, ex.getMessage());
 
         logger.error("❌ Неперехваченное исключение: {}", ex.getMessage(), ex);
 

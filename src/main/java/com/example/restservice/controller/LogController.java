@@ -6,9 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.File;
 import java.nio.file.Files;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -37,25 +35,28 @@ public class LogController {
     @ApiResponse(responseCode = "200", description = "Лог-файл возвращён")
     @ApiResponse(responseCode = "400", description = "Неверный формат даты")
     @ApiResponse(responseCode = "404", description = "Лог за указанную дату не найден")
-    public ResponseEntity<?> getLogsByDate(
+    public ResponseEntity<Object> getLogsByDate(
             @Parameter(description = "Дата в формате yyyy-MM-dd")
             @RequestParam String date) {
         try {
-            logger.info("📂 Получен запрос на лог за дату {}", date);
+            String sanitizedDate = date.replaceAll("[^\\d\\-]", "");
+            logger.info("📂 Получен запрос на лог за дату {}", sanitizedDate);
 
-            LocalDate parsedDate = LocalDate.parse(date);
+
             File logFile = new File(LOG_FILE_PATH);
             if (!logFile.exists()) {
-                logger.warn("⚠️ Лог-файл не найден при запросе даты {}", date);
+                String safeDate = date.replaceAll("[^\\d\\-]", "");
+                logger.warn("⚠️ Лог-файл не найден при запросе даты {}", safeDate);
                 return ResponseEntity.status(404).body("Лог-файл не найден.");
             }
 
             List<String> filteredLines = Files.lines(logFile.toPath())
                     .filter(line -> line.startsWith(date))
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (filteredLines.isEmpty()) {
-                logger.info("ℹ️ Логи за дату {} не найдены", date);
+                String safeDate = date.replaceAll("[^\\d\\-]", "");
+                logger.info("ℹ️ Логи за дату {} не найдены", safeDate);
                 return ResponseEntity.status(404).body("Логи за дату " + date + " не найдены.");
             }
 

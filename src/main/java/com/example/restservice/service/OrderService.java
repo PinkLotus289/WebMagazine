@@ -11,11 +11,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 
 @Service
 public class OrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     private final OrderRepository orderRepository;
     private final OrderCache orderCache;
@@ -29,14 +32,12 @@ public class OrderService {
         this.orderCache = orderCache;
     }
 
-
     public List<Order> findOrdersByProductName(String productName) {
         if (orderCache.contains(productName)) {
-            System.out.println("👉 Данные взяты из кэша для productName: " + productName);
+            logger.info("👉 Данные взяты из кэша для productName: {}", productName);
             return orderCache.get(productName);
         } else {
-            System.out.println("🔄 Кэш отсутствует. Загружаем из БД для productName: "
-                    + productName);
+            logger.info("🔄 Кэш отсутствует. Загружаем из БД для productName: {}", productName);
             List<Order> orders = orderRepository.findOrdersByProductName(productName);
             orderCache.put(productName, orders);
             return orders;
@@ -45,11 +46,10 @@ public class OrderService {
 
     public String clearOrdersCache() {
         String message = "🧹 Очистка кэша заказов...";
-        System.out.println(message);
+        logger.info(message);
         orderCache.clear();
         return message;
     }
-
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -112,15 +112,12 @@ public class OrderService {
         });
     }
 
-
     public Optional<Order> removeProductFromOrder(Long orderId, Long productId) {
         return orderRepository.findById(orderId).map(order -> {
-            // Находим удаляемый продукт
             Optional<Product> toRemove = order.getProducts().stream()
                     .filter(p -> p.getId().equals(productId))
                     .findFirst();
 
-            // Удаляем, если нашли
             boolean removed = order.getProducts().removeIf(p -> p.getId().equals(productId));
             if (removed) {
                 toRemove.ifPresent(p -> orderCache.invalidate(p.getName()));
@@ -130,5 +127,4 @@ public class OrderService {
             return orderRepository.save(order);
         });
     }
-
 }
