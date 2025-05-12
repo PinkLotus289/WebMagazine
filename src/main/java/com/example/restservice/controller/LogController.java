@@ -9,6 +9,10 @@ import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +21,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/logs")
 @Tag(name = "Логирование", description = "Работа с логами приложения")
 public class LogController {
 
+    private static final Logger logger = LoggerFactory.getLogger(LogController.class);
     private static final String LOG_FILE_PATH = "logs/app.log";
 
     @GetMapping
@@ -37,27 +41,37 @@ public class LogController {
             @Parameter(description = "Дата в формате yyyy-MM-dd")
             @RequestParam String date) {
         try {
+            logger.info("📂 Получен запрос на лог за дату {}", date);
+
             LocalDate parsedDate = LocalDate.parse(date);
             File logFile = new File(LOG_FILE_PATH);
             if (!logFile.exists()) {
+                logger.warn("⚠️ Лог-файл не найден при запросе даты {}", date);
                 return ResponseEntity.status(404).body("Лог-файл не найден.");
             }
+
             List<String> filteredLines = Files.lines(logFile.toPath())
                     .filter(line -> line.startsWith(date))
                     .collect(Collectors.toList());
 
             if (filteredLines.isEmpty()) {
+                logger.info("ℹ️ Логи за дату {} не найдены", date);
                 return ResponseEntity.status(404).body("Логи за дату " + date + " не найдены.");
             }
 
-            String response = String.join("\n", filteredLines);
+            File tempFile = File.createTempFile("log-" + date + "-", ".txt");
+            Files.write(tempFile.toPath(), filteredLines);
+
+            Resource resource = new FileSystemResource(tempFile);
+
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "inline; filename=log-" + date + ".txt")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=log-"
+                            + date + ".txt")
                     .contentType(MediaType.TEXT_PLAIN)
-                    .body(response);
+                    .body(resource);
 
         } catch (Exception e) {
+            logger.error("❌ Ошибка при запросе логов по дате {}: {}", date, e.getMessage());
             return ResponseEntity.badRequest().body("❌ Неверный формат даты. Используй yyyy-MM-dd");
         }
     }

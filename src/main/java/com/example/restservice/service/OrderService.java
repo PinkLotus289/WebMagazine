@@ -123,7 +123,7 @@ public class OrderService {
             // Удаляем, если нашли
             boolean removed = order.getProducts().removeIf(p -> p.getId().equals(productId));
             if (removed) {
-                toRemove.ifPresent(p -> orderCache.invalidate(p.getName())); // ⚠️ Инвалидация по имени продукта
+                toRemove.ifPresent(p -> orderCache.invalidate(p.getName()));
             }
 
             order.recalculateTotalAmount();
