@@ -1,5 +1,7 @@
 package com.example.restservice.exception;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -28,6 +30,23 @@ public class GlobalExceptionHandler {
         });
 
         logger.warn("⚠️ Ошибка валидации: {}", errors);
+
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(
+            ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+            String rawPath = violation.getPropertyPath().toString();
+            String field = rawPath.replaceAll("^.*arg0\\[(\\d+)]\\.", "$1.");
+            String message = violation.getMessage();
+            errors.put(field, message);
+        }
+
+        logger.warn("⚠️ ConstraintViolationException: {}", errors);
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }

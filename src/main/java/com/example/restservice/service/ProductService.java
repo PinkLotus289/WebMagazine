@@ -1,20 +1,25 @@
 package com.example.restservice.service;
 
+import com.example.restservice.dto.ProductDto;
 import com.example.restservice.exception.InvalidProductException;
+import com.example.restservice.mapper.ProductMapper;
 import com.example.restservice.model.Product;
 import com.example.restservice.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository,
+                          ProductMapper productMapper) {
         this.productRepository = productRepository;
+        this.productMapper = productMapper;
     }
 
     public List<Product> getAllProducts() {
@@ -48,5 +53,19 @@ public class ProductService {
         }
         return false;
     }
+
+    @Transactional
+    public List<ProductDto> createProducts(List<ProductDto> productDtos) {
+        List<Product> newProducts = productDtos.stream()
+                .map(productMapper::toEntity)
+                .toList();
+
+        productRepository.saveAll(newProducts);
+
+        return newProducts.stream()
+                .map(productMapper::toDto)
+                .toList();
+    }
 }
+
 
