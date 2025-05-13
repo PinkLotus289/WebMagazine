@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +63,12 @@ public class LogController {
                 return ResponseEntity.status(404).body("Логи за дату " + date + " не найдены.");
             }
 
-            File tempFile = File.createTempFile("log-" + date + "-", ".txt");
-            Files.write(tempFile.toPath(), filteredLines);
+            Path secureDir = Paths.get("logs", "temp");
+            Files.createDirectories(secureDir); // Создаст "logs/temp", если её нет
+
+            Path tempFile = Files.createTempFile(secureDir, "log-" + date + "-", ".txt");
+            Files.write(tempFile, filteredLines);
+
 
             Resource resource = new FileSystemResource(tempFile);
 
