@@ -107,7 +107,8 @@ public class LoggingAspect {
 
             return result;
         } catch (Exception ex) {
-            throw new LogProcessingException("Ошибка при выполнении запроса " + method + " " + uri, ex);
+            throw new LogProcessingException("Ошибка при выполнении запроса " + method
+                    + " " + uri, ex);
         }
     }
 
