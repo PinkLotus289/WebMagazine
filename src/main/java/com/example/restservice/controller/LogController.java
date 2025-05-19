@@ -1,5 +1,8 @@
 package com.example.restservice.controller;
 
+import com.example.restservice.dto.LogRangeRequest;
+import com.example.restservice.model.TaskStatus;
+import com.example.restservice.service.LogGenerationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -8,20 +11,21 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/logs")
@@ -86,5 +90,43 @@ public class LogController {
             return ResponseEntity.badRequest().body("❌ Неверный формат даты. Используй yyyy-MM-dd");
         }
     }
+
+    @Autowired
+    private LogGenerationService logGenerationService;
+
+    @PostMapping("/create-range")
+    @Operation(summary = "Создать лог-файл за период (асинхронно)")
+    public Map<String, String> createLogByPeriod(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime from,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime to) {
+        String id = logGenerationService.createLogTask(from, to);
+        return Map.of("id", id);
+    }
+
+    @GetMapping("/status/{id}")
+    @Operation(summary = "Получить статус генерации лог файла")
+    public ResponseEntity<Map<String, String>> getLogStatus(@PathVariable String id) {
+        TaskStatus status = logGenerationService.getStatus(id);
+        if (status == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Файл с таким ID не найден"));
+        }
+        return ResponseEntity.ok(Map.of("status", status.name()));
+    }
+
+    @GetMapping("/file/{id}")
+    @Operation(summary = "Скачать сгенерированный лог-файл")
+    public ResponseEntity<Resource> getGeneratedLog(@PathVariable String id) {
+        Path file = logGenerationService.getFile(id);
+        if (file != null && Files.exists(file)) {
+            FileSystemResource resource = new FileSystemResource(file);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getFileName())
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(resource);
+        } else {
+            return ResponseEntity.status(404).build();
+        }
+    }
+
 }
 

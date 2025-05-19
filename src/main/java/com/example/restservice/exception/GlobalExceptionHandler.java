@@ -76,9 +76,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllOtherExceptions(Exception ex) {
         Map<String, String> error = new HashMap<>();
-        error.put(ERROR_KEY, ex.getMessage());
+        error.put(ERROR_KEY, ex.getClass().getSimpleName() + ": " + ex.getMessage());
 
-        logger.error("❌ Неперехваченное исключение: {}", ex.getMessage(), ex);
+        logger.error("❌ Неперехваченное исключение", ex); // лог full stack trace
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
