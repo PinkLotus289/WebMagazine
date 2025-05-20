@@ -1,4 +1,8 @@
 package com.example.restservice.model;
 
-public class TaskStatus {
+public enum TaskStatus {
+    PENDING,
+    DONE,
+    ERROR
 }
+

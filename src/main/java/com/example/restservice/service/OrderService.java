@@ -82,13 +82,22 @@ public class OrderService {
         return orderRepository.findById(id)
                 .map(order -> {
                     order.setCustomerName(updatedOrder.getCustomerName());
-                    order.setProducts(updatedOrder.getProducts());
+
+                    // 💥 Заменяем сырые продукты на полные объекты из БД
+                    Set<Long> productIds = updatedOrder.getProducts().stream()
+                            .map(p -> p.getId())
+                            .collect(Collectors.toSet());
+
+                    Set<Product> productsFromDb = new HashSet<>(productRepository.findAllById(productIds));
+                    order.setProducts(productsFromDb);
+
                     order.recalculateTotalAmount();
 
-                    order.getProducts().forEach(p -> orderCache.invalidate(p.getName()));
+                    productsFromDb.forEach(p -> orderCache.invalidate(p.getName()));
                     return orderRepository.save(order);
                 });
     }
+
 
     public boolean deleteOrder(Long id) {
         if (orderRepository.existsById(id)) {

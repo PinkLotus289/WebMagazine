@@ -82,4 +82,11 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(ProductInOrderException.class)
+    public ResponseEntity<Map<String, String>> handleProductInOrder(ProductInOrderException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
 }

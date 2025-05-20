@@ -2,9 +2,12 @@ package com.example.restservice.service;
 
 import com.example.restservice.dto.ProductDto;
 import com.example.restservice.exception.InvalidProductException;
+import com.example.restservice.exception.ProductInOrderException;
 import com.example.restservice.mapper.ProductMapper;
+import com.example.restservice.model.Order;
 import com.example.restservice.model.Product;
 import com.example.restservice.repository.ProductRepository;
+import com.example.restservice.repository.OrderRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -15,11 +18,13 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final OrderRepository orderRepository;
 
     public ProductService(ProductRepository productRepository,
-                          ProductMapper productMapper) {
+                          ProductMapper productMapper, OrderRepository orderRepository) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
+        this.orderRepository = orderRepository;
     }
 
     public List<Product> getAllProducts() {
@@ -39,20 +44,40 @@ public class ProductService {
 
     public Optional<Product> updateProduct(Long id, Product updatedProduct) {
         return productRepository.findById(id)
-                .map(product -> {
-                    product.setName(updatedProduct.getName());
-                    product.setPrice(updatedProduct.getPrice());
-                    return productRepository.save(product);
+                .map(existing -> {
+                    existing.setName(updatedProduct.getName());
+                    existing.setPrice(updatedProduct.getPrice());
+
+                    Product saved = productRepository.save(existing);
+
+                    // 💥 Перерасчёт всех заказов, где используется обновлённый продукт
+                    List<Order> affectedOrders = orderRepository.findOrdersByProductName(saved.getName());
+
+                    for (Order order : affectedOrders) {
+                        order.recalculateTotalAmount();
+                    }
+
+                    orderRepository.saveAll(affectedOrders);
+
+                    return saved;
                 });
     }
 
+
     public boolean deleteProduct(Long id) {
-        if (productRepository.existsById(id)) {
-            productRepository.deleteById(id);
-            return true;
+        if (!productRepository.existsById(id)) return false;
+
+        Product product = productRepository.findById(id).orElseThrow();
+
+        boolean inUse = !orderRepository.findOrdersByProductName(product.getName()).isEmpty();
+        if (inUse) {
+            throw new ProductInOrderException("Товар используется в заказах и не может быть удалён.");
         }
-        return false;
+
+        productRepository.deleteById(id);
+        return true;
     }
+
 
     @Transactional
     public List<ProductDto> createProducts(List<ProductDto> productDtos) {

@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -31,32 +30,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
     private final ProductService productService;
-    private final VisitCounterService counterService;
+
 
     public ProductController(ProductService productService, VisitCounterService counterService) {
         this.productService = productService;
-        this.counterService = counterService;
     }
 
     @GetMapping
     @Operation(summary = "Получить список всех товаров")
     public List<Product> getAllProducts() {
-        counterService.increment();
         return productService.getAllProducts();
-    }
-
-    @GetMapping("/counter")
-    @Operation(summary = "Получить количество посещений /products")
-    public Map<String, Integer> getVisitCount() {
-        return Map.of("count", counterService.getValue());
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Получить товар по ID")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        return productService.getProductById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
