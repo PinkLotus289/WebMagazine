@@ -4,7 +4,6 @@ import com.example.restservice.dto.ProductDto;
 import com.example.restservice.dto.ProductListDto;
 import com.example.restservice.model.Product;
 import com.example.restservice.service.ProductService;
-import com.example.restservice.service.VisitCounterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,7 +31,7 @@ public class ProductController {
     private final ProductService productService;
 
 
-    public ProductController(ProductService productService, VisitCounterService counterService) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
     }
 
