@@ -70,7 +70,7 @@ public class LogController {
 
             List<String> filteredLines = Files.lines(logFile.toPath())
                     .filter(line -> line.startsWith(date))
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (filteredLines.isEmpty()) {
                 logger.info("ℹ️ Логи за дату {} не найдены", sanitizedDate);
@@ -96,8 +96,11 @@ public class LogController {
         }
     }
 
-    @Autowired
-    private LogGenerationService logGenerationService;
+    private final LogGenerationService logGenerationService;
+
+    public LogController(LogGenerationService logGenerationService) {
+        this.logGenerationService = logGenerationService;
+    }
 
     @PostMapping("/create-range")
     @Operation(summary = "Создать лог-файл за период (асинхронно)")
