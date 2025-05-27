@@ -1,6 +1,5 @@
 package com.example.restservice.controller;
 
-import com.example.restservice.dto.LogRangeRequest;
 import com.example.restservice.model.TaskStatus;
 import com.example.restservice.service.LogGenerationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +24,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 @RequestMapping("/logs")
@@ -120,7 +125,8 @@ public class LogController {
         if (file != null && Files.exists(file)) {
             FileSystemResource resource = new FileSystemResource(file);
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getFileName())
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="
+                            + file.getFileName())
                     .contentType(MediaType.TEXT_PLAIN)
                     .body(resource);
         } else {

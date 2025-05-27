@@ -3,17 +3,22 @@ package com.example.restservice.service;
 import com.example.restservice.model.LogTask;
 import com.example.restservice.model.TaskStatus;
 import jakarta.annotation.PostConstruct;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
 
 @Service
 public class LogGenerationService {
@@ -22,7 +27,8 @@ public class LogGenerationService {
     private final Path sourceLog = Paths.get("logs/app.log");
     private final Path outputDir = Paths.get("logs/generated");
 
-    private static final DateTimeFormatter LOG_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter LOG_DATE_FORMAT = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @PostConstruct
     public void init() throws IOException {
@@ -33,7 +39,7 @@ public class LogGenerationService {
             for (Path path : stream) {
                 String fileName = path.getFileName().toString(); // log_abc123.txt
                 if (fileName.startsWith("log_") && fileName.endsWith(".txt")) {
-                    String id = fileName.substring(4, fileName.length() - 4); // вырезаем "log_" и ".txt"
+                    String id = fileName.substring(4, fileName.length() - 4);
                     LogTask task = new LogTask();
                     task.setId(id);
                     task.setStatus(TaskStatus.DONE);
@@ -72,8 +78,10 @@ public class LogGenerationService {
                         .filter(line -> {
                             try {
                                 String timestamp = line.substring(0, 19); // "yyyy-MM-dd HH:mm:ss"
-                                LocalDateTime entryTime = LocalDateTime.parse(timestamp, LOG_DATE_FORMAT);
-                                return !entryTime.isBefore(task.getFrom()) && !entryTime.isAfter(task.getTo());
+                                LocalDateTime entryTime = LocalDateTime.parse(timestamp,
+                                        LOG_DATE_FORMAT);
+                                return !entryTime.isBefore(task.getFrom()) && !entryTime.isAfter(
+                                        task.getTo());
                             } catch (Exception e) {
                                 return false;
                             }

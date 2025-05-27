@@ -16,7 +16,8 @@ public class ProductVisitAspect {
         this.visitCounterService = visitCounterService;
     }
 
-    @Pointcut("execution(* com.example.restservice.controller.ProductController.getAllProducts(..))")
+    @Pointcut("execution(* com.example.restservice.controller.ProductController."
+            + "getAllProducts(..))")
     public void productVisitPointcut() {}
 
     @Before("productVisitPointcut()")

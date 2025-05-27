@@ -88,7 +88,8 @@ public class OrderService {
                             .map(p -> p.getId())
                             .collect(Collectors.toSet());
 
-                    Set<Product> productsFromDb = new HashSet<>(productRepository.findAllById(productIds));
+                    Set<Product> productsFromDb = new HashSet<>(productRepository
+                            .findAllById(productIds));
                     order.setProducts(productsFromDb);
 
                     order.recalculateTotalAmount();
