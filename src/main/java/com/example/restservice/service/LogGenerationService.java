@@ -81,8 +81,10 @@ public class LogGenerationService {
                         .filter(line -> {
                             try {
                                 String timestamp = line.substring(0, 19);
-                                LocalDateTime entryTime = LocalDateTime.parse(timestamp, LOG_DATE_FORMAT);
-                                return !entryTime.isBefore(task.getFrom()) && !entryTime.isAfter(task.getTo());
+                                LocalDateTime entryTime = LocalDateTime.parse(timestamp,
+                                        LOG_DATE_FORMAT);
+                                return !entryTime.isBefore(task.getFrom()) && !entryTime.isAfter(
+                                        task.getTo());
                             } catch (Exception e) {
                                 return false;
                             }
