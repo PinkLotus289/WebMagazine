@@ -1,38 +1,49 @@
-.App {
-  text-align: center;
+body {
+  background-color: #ffffff; /* белый фон */
+  color: #000000;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.ant-layout {
+  background: #ffffff;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.ant-layout-header {
+  background-color: #2C3E3F !important; /* тёмно-серый */
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.ant-table {
+  background-color: #f2f2f2; /* светло-серый фон таблицы */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.ant-table-thead > tr > th {
+  background-color: #e6e6e6;
+  color: #333;
+}
+
+.ant-btn-primary {
+  background-color: #40e0d0;
+  border-color: #40e0d0;
+  color: #000;
+}
+
+.ant-btn-dangerous,
+.ant-btn[danger] {
+  background-color: #cc7351;
+  border-color: #cc7351;
+  color: #fff;
+}
+
+.ant-btn:hover {
+  opacity: 0.9;
+}
+
+.ant-modal-content {
+  background-color: #ffffff;
+}
+
+.ant-select-selector {
+  background-color: #ffffff !important;
 }

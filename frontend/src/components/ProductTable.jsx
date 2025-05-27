@@ -25,10 +25,19 @@ export default function ProductTable() {
     };
 
     const columns = [
-        { title: 'Название', dataIndex: 'name' },
-        { title: 'Цена', dataIndex: 'price' },
+        {
+            title: 'Название',
+            dataIndex: 'name',
+            width: '33%',
+        },
+        {
+            title: 'Цена у.е.',
+            dataIndex: 'price',
+            width: '33%',
+        },
         {
             title: 'Действия',
+            width: '34%',
             render: (_, record) => (
                 <Space>
                     <Button style={{ color: '#40e0d0' }} onClick={() => handleEdit(record)}>Изменить</Button>
@@ -37,6 +46,15 @@ export default function ProductTable() {
             )
         }
     ];
+
+    <Table
+        dataSource={products}
+        columns={columns}
+        rowKey="id"
+        pagination={{ pageSize: 10 }}
+        style={{ width: '100%' }}
+    />
+
 
     return (
         <>

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, List, Typography, Button, message, Select } from 'antd';
+import { Card, List, Typography, Button, message, Select, Divider } from 'antd';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -49,35 +49,59 @@ export default function OrderCard() {
     if (!order) return null;
 
     return (
-        <Card
-            title={`Заказ №${order.id} (${order.customerName})`}
-            style={{ background: '#1f1f1f', color: '#fff' }}
-            extra={<Button onClick={() => navigate(-1)}>← Назад</Button>}
-        >
-            <Typography.Text style={{ color: '#ccc' }}>Дата: {order.orderDate}</Typography.Text><br/>
-            <Typography.Text style={{ color: '#ccc' }}>Сумма: {order.totalAmount}</Typography.Text>
+        <div style={{ maxWidth: 600, margin: '40px auto' }}>
+            <Card
+                title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>🧾 Заказ №{order.id} — <strong>{order.customerName}</strong></span>
+                        <Button onClick={() => navigate(-1)}>← Назад</Button>
+                    </div>
+                }
+                style={{
+                    background: '#f7f7f7',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                    padding: '20px',
+                    border: '1px solid #dcdcdc',
+                }}
+            >
+                <Typography.Text type="secondary">📅 Дата: {order.orderDate}</Typography.Text><br/>
+                <Typography.Text type="secondary">💰 Сумма: {order.totalAmount} y.e.</Typography.Text>
 
-            <List
-                header="Товары в заказе"
-                dataSource={order.products}
-                renderItem={product => (
-                    <List.Item
-                        style={{ background: '#141414', color: '#fff' }}
-                        actions={[
-                            <Button danger size="small" onClick={() => handleRemove(product.id)}>Удалить</Button>
-                        ]}
-                    >
-                        {product.name} — {product.price}
-                    </List.Item>
-                )}
-                style={{ marginTop: 16 }}
-            />
+                <Divider />
 
-            <div style={{ marginTop: 24 }}>
+                <Typography.Title level={5} style={{ marginBottom: 10 }}>📦 Товары в заказе</Typography.Title>
+
+                <List
+                    dataSource={order.products}
+                    renderItem={product => (
+                        <List.Item
+                            style={{
+                                background: '#fff',
+                                borderRadius: 6,
+                                marginBottom: 8,
+                                padding: '8px 16px',
+                                border: '1px solid #eee',
+                            }}
+                            actions={[
+                                <Button danger size="small" onClick={() => handleRemove(product.id)}>Удалить</Button>
+                            ]}
+                        >
+                            {product.name} — {product.price} у.e.
+                        </List.Item>
+                    )}
+                />
+
+                <Divider />
+
+                <Typography.Text style={{ display: 'block', marginBottom: 6 }}>
+                    ➕ Добавить товар
+                </Typography.Text>
+
                 <Select
                     showSearch
                     placeholder="Выберите товар"
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', marginBottom: 12 }}
                     value={selectedProductId}
                     onChange={setSelectedProductId}
                     options={products.map(p => ({ label: p.name, value: p.id }))}
@@ -85,11 +109,11 @@ export default function OrderCard() {
                 <Button
                     type="primary"
                     onClick={handleAdd}
-                    style={{ marginTop: 8, backgroundColor: '#40e0d0', color: 'black' }}
+                    style={{ backgroundColor: '#40e0d0', color: '#000', width: '100%' }}
                 >
-                    Добавить товар
+                    Добавить
                 </Button>
-            </div>
-        </Card>
+            </Card>
+        </div>
     );
 }

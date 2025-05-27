@@ -42,7 +42,6 @@ export default function OrderTable() {
                     >
                         Изменить
                     </Button>
-                    <Button onClick={() => navigate(`/orders/${record.id}`)}>Открыть</Button>
                     <Button danger onClick={() => setToDelete(record)}>Удалить</Button>
                 </Space>
             )
@@ -66,7 +65,11 @@ export default function OrderTable() {
                 columns={columns}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
+                onRow={(record) => ({
+                    onClick: () => navigate(`/orders/${record.id}`)
+                })}
             />
+
 
             <OrderForm
                 visible={isModalOpen}
