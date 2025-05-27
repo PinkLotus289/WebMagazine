@@ -19,25 +19,29 @@ import java.util.stream.Stream;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class LogGenerationService {
+
+    private final LogGenerationService self;
 
     private final Map<String, LogTask> taskMap = new ConcurrentHashMap<>();
     private final Path sourceLog = Paths.get("logs/app.log");
     private final Path outputDir = Paths.get("logs/generated");
 
-    private static final DateTimeFormatter LOG_DATE_FORMAT = DateTimeFormatter
-            .ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter LOG_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public LogGenerationService(LogGenerationService self) {
+        this.self = self;
+    }
 
     @PostConstruct
     public void init() throws IOException {
         Files.createDirectories(outputDir);
 
-        // Восстановление taskMap из уже существующих файлов
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(outputDir, "log_*.txt")) {
             for (Path path : stream) {
-                String fileName = path.getFileName().toString(); // log_abc123.txt
+                String fileName = path.getFileName().toString();
                 if (fileName.startsWith("log_") && fileName.endsWith(".txt")) {
                     String id = fileName.substring(4, fileName.length() - 4);
                     LogTask task = new LogTask();
@@ -59,7 +63,7 @@ public class LogGenerationService {
         task.setStatus(TaskStatus.PENDING);
         taskMap.put(id, task);
 
-        new Thread(() -> generateLogAsync(task)).start();
+        self.generateLogAsync(task); // ✅ вызываем через прокси
         return id;
     }
 
@@ -77,11 +81,9 @@ public class LogGenerationService {
                 List<String> filtered = lines
                         .filter(line -> {
                             try {
-                                String timestamp = line.substring(0, 19); // "yyyy-MM-dd HH:mm:ss"
-                                LocalDateTime entryTime = LocalDateTime.parse(timestamp,
-                                        LOG_DATE_FORMAT);
-                                return !entryTime.isBefore(task.getFrom()) && !entryTime.isAfter(
-                                        task.getTo());
+                                String timestamp = line.substring(0, 19);
+                                LocalDateTime entryTime = LocalDateTime.parse(timestamp, LOG_DATE_FORMAT);
+                                return !entryTime.isBefore(task.getFrom()) && !entryTime.isAfter(task.getTo());
                             } catch (Exception e) {
                                 return false;
                             }
