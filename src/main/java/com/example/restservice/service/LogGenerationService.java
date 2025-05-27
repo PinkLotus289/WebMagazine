@@ -88,7 +88,7 @@ public class LogGenerationService {
                                 return false;
                             }
                         })
-                        .collect(Collectors.toList());
+                        .toList();
 
                 Path resultFile = outputDir.resolve("log_" + task.getId() + ".txt");
                 Files.write(resultFile, filtered);
@@ -97,6 +97,9 @@ public class LogGenerationService {
             }
 
         } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt(); // повторно прерываем поток
+            }
             task.setStatus(TaskStatus.ERROR);
         }
     }
